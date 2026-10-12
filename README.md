@@ -130,7 +130,7 @@ names are unique across the directory; elsewhere anyone who can create a group
 could otherwise make themselves an admin. For the same reason, prefer full DNs
 for allowed groups on Active Directory and OpenLDAP. Names and DNs compare
 ASCII letters case-insensitively and every other character exactly, so
-look-alikes such as `ſilo-admins` don't match. Members of an admin group
+look-alikes such as `prairie-adminſ` don't match. Members of an admin group
 always pass the allowed-groups gate. With no admin groups the plugin leaves
 roles to Prairie.
 

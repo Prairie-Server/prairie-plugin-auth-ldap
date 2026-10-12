@@ -677,7 +677,7 @@ func TestAdminGroupsIgnoreLookAlikes(t *testing.T) {
 	d.setAttr("uid=carol,"+testPeople, "memberOf",
 		usersGroupDN,
 		"cn=prairie-admins,ou=team-x,"+testBase,
-		"cn=ſilo-admins,"+testGroups,
+		"cn=prairie-adminſ,"+testGroups,
 	)
 	p := newTestProvider(t, d, nil)
 	if carol := signIn(t, p, "carol", testPasswords["carol"]); carol.GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_USER {
@@ -685,7 +685,7 @@ func TestAdminGroupsIgnoreLookAlikes(t *testing.T) {
 	}
 	// Presets with directory-wide unique names accept names, and still
 	// ignore look-alikes.
-	d.setAttr("uid=carol,"+testPeople, "memberOf", usersGroupDN, "cn=ſilo-admins,"+testGroups)
+	d.setAttr("uid=carol,"+testPeople, "memberOf", usersGroupDN, "cn=prairie-adminſ,"+testGroups)
 	lldap := newTestProvider(t, d, configOverrides{configKeyDirectory: {"preset": "lldap"}, configKeyGroups: {"admin_groups": "prairie-admins"}})
 	if carol := signIn(t, lldap, "carol", testPasswords["carol"]); carol.GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_USER {
 		t.Fatalf("carol role with lldap = %v (%s)", carol.GetManagedRole(), carol.GetDenialDetail())

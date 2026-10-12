@@ -75,7 +75,7 @@ func (g directoryGroup) matches(ref groupRef) bool {
 }
 
 // asciiEqualFold compares strings ignoring ASCII case only. strings.EqualFold
-// applies Unicode folding, which makes look-alikes such as "ſilo-admins"
+// applies Unicode folding, which makes look-alikes such as "prairie-adminſ"
 // (U+017F) or a Kelvin sign (U+212A) match "prairie-admins" and "k".
 func asciiEqualFold(a, b string) bool {
 	if len(a) != len(b) {

@@ -322,10 +322,10 @@ func TestGroupMatchingIgnoresUnicodeLookAlikes(t *testing.T) {
 		value       string
 		nameMatches bool
 	}{
-		{"cn=\u017filo-admins,ou=groups,dc=example", false},   // LATIN SMALL LETTER LONG S
-		{"cn=\u212a-admins,ou=groups,dc=example", false},      // KELVIN SIGN
-		{"cn=prairie-admins,ou=team-x,dc=example", true},      // same name, other container
-		{"cn=prairie-admins,ou=group\u017f,dc=example", true}, // look-alike in the DN
+		{"cn=prairie-admin\u017f,ou=groups,dc=example", false}, // LATIN SMALL LETTER LONG S
+		{"cn=\u212a-admins,ou=groups,dc=example", false},       // KELVIN SIGN
+		{"cn=prairie-admins,ou=team-x,dc=example", true},       // same name, other container
+		{"cn=prairie-admins,ou=group\u017f,dc=example", true},  // look-alike in the DN
 	} {
 		g := groupFromDN(tc.value)
 		if g.matches(dnRef[0]) {
