@@ -1,4 +1,4 @@
-// Command plugin is Silo's first-party LDAP auth provider.
+// Command plugin is Prairie's first-party LDAP auth provider.
 package main
 
 import (
@@ -6,10 +6,10 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
 	"github.com/hashicorp/go-hclog"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
 
-	"github.com/Silo-Server/silo-plugin-auth-ldap/ldapauth"
+	"github.com/prairie-server/prairie-plugin-auth-ldap/ldapauth"
 )
 
 // version is set at build time via -ldflags "-X main.version=...".

@@ -1,19 +1,19 @@
 # Contributing to the LDAP Sign-in Plugin
 
-The [Silo contribution guide](https://github.com/Silo-Server/.github/blob/main/CONTRIBUTING.md)
+The [Prairie contribution guide](https://github.com/prairie-server/prairie-server/blob/main/CONTRIBUTING.md)
 covers project-wide coordination, focused changes, evidence, AI disclosure, and
 pull request expectations. Those requirements apply here; this guide adds the
 plugin-specific workflow.
 
 ## Before you start
 
-Open an [issue](https://github.com/Silo-Server/silo-plugin-auth-ldap/issues)
+Open an [issue](https://github.com/prairie-server/prairie-plugin-auth-ldap/issues)
 before changing denial mapping, group matching, presets, the settings schema,
 or the advertised capabilities. This repository owns LDAP directory behavior;
 plugin contracts belong in
-[`silo-plugin-sdk`](https://github.com/Silo-Server/silo-plugin-sdk), while
-Silo accounts, linking, sessions, and roles belong in
-[`silo-server`](https://github.com/Silo-Server/silo-server). Keep account
+[`prairie-plugin-sdk`](https://github.com/prairie-server/prairie-plugin-sdk), while
+Prairie accounts, linking, sessions, and roles belong in
+[`prairie-server`](https://github.com/prairie-server/prairie-server). Keep account
 logic out of this plugin: it returns facts about the directory account and
 nothing else.
 
@@ -43,6 +43,9 @@ GOWORK=off go vet ./...
 GOWORK=off go build ./...
 GOWORK=off go run . manifest >/dev/null
 gofmt -l .
+GOWORK=off golangci-lint run ./...
+GOWORK=off go test ./... -count=1 -covermode=atomic -coverprofile=coverage.out
+./scripts/check-coverage.sh coverage.out
 ```
 
 The manifest command must exit successfully and `gofmt -l .` should print
@@ -58,5 +61,5 @@ openssl). For the authentik LDAP outpost and Kanidm, ask a maintainer to run
 
 Use a Conventional Commit title, explain any compatibility or security risk,
 and paste the actual validation results. Read the
-[AI-assisted contribution policy](https://github.com/Silo-Server/silo-server/blob/main/docs/ai-contributions.md)
+[AI-assisted contribution policy](https://github.com/prairie-server/prairie-server/blob/main/docs/ai-contributions.md)
 and include its disclosure block.

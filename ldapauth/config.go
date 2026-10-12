@@ -10,8 +10,8 @@ import (
 	"time"
 	"unicode"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	"github.com/go-ldap/ldap/v3"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -208,7 +208,7 @@ func (raw rawConfig) settings() *Settings {
 		problem("service account password is required when a service account DN is set")
 	}
 	// The service bind name is not checked as a DN: Active Directory also
-	// accepts a user principal name such as svc-silo@corp.example.
+	// accepts a user principal name such as svc-prairie@corp.example.
 	s.ConnectTimeout = durationValue(raw.directory, "connect_timeout_seconds", defaultConnectTimeout, problem)
 	s.RequestTimeout = durationValue(raw.directory, "request_timeout_seconds", defaultRequestTimeout, problem)
 
@@ -310,6 +310,11 @@ func parseDirectoryURL(raw string) (*url.URL, error) {
 	}
 	u, err := url.Parse(raw)
 	if err != nil {
+		// Older Go releases reject "ldaps://a:636,b:636" as an invalid port
+		// instead of parsing it as one odd host; give the list hint either way.
+		if strings.ContainsAny(raw, ",;") {
+			return nil, fmt.Errorf("host must not contain commas or other separators; put one URL per line")
+		}
 		return nil, fmt.Errorf("not a valid URL")
 	}
 	switch u.Scheme {

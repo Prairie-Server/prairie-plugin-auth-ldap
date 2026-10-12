@@ -5,8 +5,8 @@ import (
 	"io/fs"
 	"testing"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
 )
 
 func loadTestManifest(t *testing.T) *pluginv1.PluginManifest {
@@ -21,11 +21,11 @@ func loadTestManifest(t *testing.T) *pluginv1.PluginManifest {
 	return m
 }
 
-// Silo keys installations by this ID, so changing it turns an upgrade into a
-// separate plugin. It pairs with silo.auth.oidc.
+// Prairie keys installations by this ID, so changing it turns an upgrade into a
+// separate plugin. It pairs with prairie.auth.oidc.
 func TestManifestPluginID(t *testing.T) {
-	if got := loadTestManifest(t).GetPluginId(); got != "silo.auth.ldap" {
-		t.Fatalf("plugin_id = %q, want silo.auth.ldap", got)
+	if got := loadTestManifest(t).GetPluginId(); got != "prairie.auth.ldap" {
+		t.Fatalf("plugin_id = %q, want prairie.auth.ldap", got)
 	}
 }
 

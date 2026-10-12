@@ -1,20 +1,20 @@
 {
-  "plugin_id": "silo.auth.ldap",
+  "plugin_id": "prairie.auth.ldap",
   "version": "0.1.0",
   "checksum": "__CHECKSUM__",
-  "silo_api_version": "v1",
+  "prairie_api_version": "v1",
   "category": "Authentication",
   "presentation": {
     "display_name": "LDAP Sign-in",
-    "summary": "Let people sign in to Silo with their LDAP or Active Directory password.",
-    "description_markdown": "Checks usernames and passwords against an LDAP directory such as lldap, the authentik LDAP outpost, Active Directory, Samba, FreeIPA, OpenLDAP, Kanidm, or GLAuth. Group rules decide who may sign in and who becomes a Silo admin. Silo re-checks signed-in accounts against the directory, every 12 hours by default (configurable in Silo). When someone is deleted, disabled, or removed from the allowed groups in the directory, the next re-check ends their Silo sessions and updates their role.",
+    "summary": "Let people sign in to Prairie with their LDAP or Active Directory password.",
+    "description_markdown": "Checks usernames and passwords against an LDAP directory such as lldap, the authentik LDAP outpost, Active Directory, Samba, FreeIPA, OpenLDAP, Kanidm, or GLAuth. Group rules decide who may sign in and who becomes a Prairie admin. Prairie re-checks signed-in accounts against the directory, every 12 hours by default (configurable in Prairie). When someone is deleted, disabled, or removed from the allowed groups in the directory, the next re-check ends their Prairie sessions and updates their role.",
     "setup_markdown": "1. Pick the **directory type** and enter the directory URL, the service account, and the user base DN.\n2. Optionally list **allowed groups** and **admin groups**.\n3. Run the connection test, with a test username, before enabling sign-in.\n\nUse `ldaps://` or StartTLS: the plugin sends each password to the directory to verify it.",
-    "homepage_url": "https://github.com/Silo-Server/silo-plugin-auth-ldap",
-    "source_url": "https://github.com/Silo-Server/silo-plugin-auth-ldap",
-    "support_url": "https://github.com/Silo-Server/silo-plugin-auth-ldap/issues",
-    "changelog_url": "https://github.com/Silo-Server/silo-plugin-auth-ldap/releases",
-    "publisher_name": "Silo",
-    "publisher_url": "https://github.com/Silo-Server",
+    "homepage_url": "https://github.com/prairie-server/prairie-plugin-auth-ldap",
+    "source_url": "https://github.com/prairie-server/prairie-plugin-auth-ldap",
+    "support_url": "https://github.com/prairie-server/prairie-plugin-auth-ldap/issues",
+    "changelog_url": "https://github.com/prairie-server/prairie-plugin-auth-ldap/releases",
+    "publisher_name": "Prairie",
+    "publisher_url": "https://github.com/prairie-server",
     "license_spdx": "AGPL-3.0-or-later"
   },
   "supported_platforms": [
@@ -63,7 +63,7 @@
     {
       "key": "display_name",
       "title": "Login button label",
-      "description": "The directory's name, such as \"Company directory\". Silo shows it on the sign-in button and in labels such as \"Company directory password\".",
+      "description": "The directory's name, such as \"Company directory\". Prairie shows it on the sign-in button and in labels such as \"Company directory password\".",
       "json_schema": "{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"string\"}},\"additionalProperties\":false}",
       "admin_form": {
         "submit_label": "Save label",
@@ -157,7 +157,7 @@
               {
                 "value": "glauth",
                 "label": "GLAuth",
-                "description": "Uses uidNumber as the unique ID. Never reuse a uidNumber after deleting a user: the next holder would take over the old Silo account. Users with accountStatus inactive count as disabled."
+                "description": "Uses uidNumber as the unique ID. Never reuse a uidNumber after deleting a user: the next holder would take over the old Prairie account. Users with accountStatus inactive count as disabled."
               }
             ]
           },
@@ -190,7 +190,7 @@
             "label": "Service account DN",
             "description": "Account the plugin binds as to search for people and groups. Leave blank to search anonymously. Active Directory also accepts a user principal name.",
             "control": "ADMIN_FORM_CONTROL_TEXT",
-            "placeholder": "cn=silo,ou=services,dc=example,dc=com"
+            "placeholder": "cn=prairie,ou=services,dc=example,dc=com"
           },
           {
             "key": "bind_password",
@@ -209,7 +209,7 @@
               "has_max": true,
               "max": 120
             },
-            "description": "Time to wait for each directory URL before trying the next. Silo allows a sign-in about 10 seconds in total, so with several URLs the plugin splits the time left across the ones not yet tried."
+            "description": "Time to wait for each directory URL before trying the next. Prairie allows a sign-in about 10 seconds in total, so with several URLs the plugin splits the time left across the ones not yet tried."
           },
           {
             "key": "request_timeout_seconds",
@@ -222,7 +222,7 @@
               "has_max": true,
               "max": 120
             },
-            "description": "Time to wait for each directory answer. Silo allows a sign-in about 10 seconds in total, so larger values have no effect on sign-in."
+            "description": "Time to wait for each directory answer. Prairie allows a sign-in about 10 seconds in total, so larger values have no effect on sign-in."
           }
         ]
       }
@@ -253,7 +253,7 @@
           {
             "key": "username_attribute",
             "label": "Username attribute",
-            "description": "Suggested Silo username. Leave blank to use the directory type's default.",
+            "description": "Suggested Prairie username. Leave blank to use the directory type's default.",
             "control": "ADMIN_FORM_CONTROL_TEXT",
             "placeholder": "uid"
           },
@@ -274,7 +274,7 @@
           {
             "key": "unique_id_attribute",
             "label": "Unique ID attribute",
-            "description": "Immutable ID that links the person to their Silo account, such as entryUUID, objectGUID, ipaUniqueID, or nsUniqueId. Changing it later disconnects existing accounts. Leave blank to use the directory type's default.",
+            "description": "Immutable ID that links the person to their Prairie account, such as entryUUID, objectGUID, ipaUniqueID, or nsUniqueId. Changing it later disconnects existing accounts. Leave blank to use the directory type's default.",
             "control": "ADMIN_FORM_CONTROL_TEXT",
             "placeholder": "entryUUID"
           },
@@ -287,7 +287,7 @@
           {
             "key": "email_verified",
             "label": "Treat directory email as verified",
-            "description": "Silo only matches existing accounts by email when the address is verified. Choose Verified only if people cannot change their own email in the directory.",
+            "description": "Prairie only matches existing accounts by email when the address is verified. Choose Verified only if people cannot change their own email in the directory.",
             "control": "ADMIN_FORM_CONTROL_SELECT",
             "default_value": "unknown",
             "options": [
@@ -410,14 +410,14 @@
           {
             "key": "allowed_groups",
             "label": "Allowed groups",
-            "description": "One group per line, as a name (silo-users) or a full DN. Only members, and members of an admin group, may sign in. A name matches every group of that name, so on Active Directory and OpenLDAP prefer full DNs. Leave empty to let everyone the user filter finds sign in.",
+            "description": "One group per line, as a name (prairie-users) or a full DN. Only members, and members of an admin group, may sign in. A name matches every group of that name, so on Active Directory and OpenLDAP prefer full DNs. Leave empty to let everyone the user filter finds sign in.",
             "control": "ADMIN_FORM_CONTROL_TEXTAREA",
             "rows": 3
           },
           {
             "key": "admin_groups",
             "label": "Admin groups",
-            "description": "One group per line, as a full DN (cn=silo-admins,ou=groups,dc=example,dc=com). Names are accepted only for lldap, authentik, FreeIPA, Kanidm, and GLAuth, where group names are unique across the directory. Members become Silo admins and everyone else becomes a regular user, updated at each sign-in and re-check. Leave empty to manage roles in Silo.",
+            "description": "One group per line, as a full DN (cn=prairie-admins,ou=groups,dc=example,dc=com). Names are accepted only for lldap, authentik, FreeIPA, Kanidm, and GLAuth, where group names are unique across the directory. Members become Prairie admins and everyone else becomes a regular user, updated at each sign-in and re-check. Leave empty to manage roles in Prairie.",
             "control": "ADMIN_FORM_CONTROL_TEXTAREA",
             "rows": 2
           }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 )
 
 // TestConnection checks staged settings without saving anything: settings,
@@ -87,7 +87,7 @@ func testConnection(ctx context.Context, s *Settings) *pluginv1.AuthTestConnecti
 		// {username} appears only in a form such as an extensible match,
 		// where "*" is a literal value; the test user step checks the
 		// filter instead.
-		rec.add("user_filter", "Find accounts with the user filter", true, "The user filter has no plain (attribute={username}) test, so it cannot list accounts; the test user step checks it. Without one, Silo's re-check cannot confirm that a deleted account is gone and reports the directory as unavailable for it.")
+		rec.add("user_filter", "Find accounts with the user filter", true, "The user filter has no plain (attribute={username}) test, so it cannot list accounts; the test user step checks it. Without one, Prairie's re-check cannot confirm that a deleted account is gone and reports the directory as unavailable for it.")
 	default:
 		rec.add("user_filter", "Find accounts with the user filter", false, "No entry under %s matches the user filter. Check the base DN, the filter, and the service account's read rights.", s.UserBaseDN)
 		return rec.resp
@@ -143,7 +143,7 @@ func testUser(sess *session, s *Settings, rec *stepRecorder) {
 		rec.add(id, label, false, "%s The account is not in an allowed group, so sign-in would be refused.", facts)
 		return
 	}
-	// Silo re-checks signed-in accounts by unique ID; make sure that lookup
+	// Prairie re-checks signed-in accounts by unique ID; make sure that lookup
 	// finds the same entry, or every re-check would fail.
 	found, status, detail := sess.accountBySubject(subject)
 	if found == nil || !sameDN(found.DN, entry.DN) {
@@ -153,7 +153,7 @@ func testUser(sess *session, s *Settings, rec *stepRecorder) {
 		rec.add(id, label, false, "%s Sign-in would work, but looking the account up by %s answers %s: %s.", facts, s.UniqueIDAttribute, status, detail)
 		return
 	}
-	role := "left to Silo"
+	role := "left to Prairie"
 	switch ev.gate.role {
 	case pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_ADMIN:
 		role = "admin"

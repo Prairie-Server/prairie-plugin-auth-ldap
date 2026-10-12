@@ -20,3 +20,6 @@ logs/
 
 # Directory containers for TestContainerDirectories
 /.ldaptest/
+
+# Test coverage output
+/coverage.out
