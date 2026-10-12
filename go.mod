@@ -1,13 +1,13 @@
-module github.com/Silo-Server/silo-plugin-auth-ldap
+module github.com/prairie-server/prairie-plugin-auth-ldap
 
 go 1.26.0
 
 require (
-	github.com/Silo-Server/silo-plugin-sdk v0.22.0
 	github.com/go-asn1-ber/asn1-ber v1.5.8
 	github.com/go-ldap/ldap/v3 v3.4.11
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/jimlambrt/gldap v0.1.14
+	github.com/prairie-server/prairie-plugin-sdk v0.12.1-0.20261012164003-eb8175742938
 	google.golang.org/protobuf v1.36.11
 )
 
@@ -24,11 +24,11 @@ require (
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
-	golang.org/x/crypto v0.51.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
-	google.golang.org/grpc v1.82.1 // indirect
+	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260526163538-3dc84a4a5aaa // indirect
+	google.golang.org/grpc v1.83.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

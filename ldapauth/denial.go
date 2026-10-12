@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	"github.com/go-ldap/ldap/v3"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 )
 
 // Behera password-policy error values (draft-behera-ldap-password-policy).

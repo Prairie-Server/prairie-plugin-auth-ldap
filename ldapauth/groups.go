@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	"github.com/go-ldap/ldap/v3"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 )
 
 // groupRef is one configured allowed or admin group: a full DN, or a bare
@@ -46,7 +46,7 @@ type directoryGroup struct {
 	// the DN's first RDN with a Kanidm "@domain" suffix removed.
 	name string
 	// rawName is the first RDN value as written, such as
-	// "silo-users@idm.example.com" for Kanidm.
+	// "prairie-users@idm.example.com" for Kanidm.
 	rawName string
 }
 
@@ -75,8 +75,8 @@ func (g directoryGroup) matches(ref groupRef) bool {
 }
 
 // asciiEqualFold compares strings ignoring ASCII case only. strings.EqualFold
-// applies Unicode folding, which makes look-alikes such as "ſilo-admins"
-// (U+017F) or a Kelvin sign (U+212A) match "silo-admins" and "k".
+// applies Unicode folding, which makes look-alikes such as "prairie-adminſ"
+// (U+017F) or a Kelvin sign (U+212A) match "prairie-admins" and "k".
 func asciiEqualFold(a, b string) bool {
 	if len(a) != len(b) {
 		return false

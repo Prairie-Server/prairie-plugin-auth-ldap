@@ -1,11 +1,11 @@
-# LDAP Sign-in Plugin for Silo
+# LDAP Sign-in Plugin for Prairie
 
-First-party [Silo](https://github.com/Silo-Server/silo-server) auth provider
+First-party [Prairie](https://github.com/prairie-server/prairie-server) auth provider
 that checks usernames and passwords against an LDAP directory: lldap, the
 authentik LDAP outpost, Active Directory, Samba, FreeIPA, OpenLDAP, Kanidm, or
-GLAuth. Its plugin ID is `silo.auth.ldap`.
+GLAuth. Its plugin ID is `prairie.auth.ldap`.
 
-The plugin answers three questions for the host and holds no Silo account
+The plugin answers three questions for the host and holds no Prairie account
 logic:
 
 - **Sign-in** (`Authenticate`): is this password right, and who is this person?
@@ -14,14 +14,14 @@ logic:
 - **Connection test** (`TestConnection`): do the staged settings work?
 
 It returns typed facts: the unique ID (`external_subject`), username, email,
-display name, groups, and the Silo role that the admin groups imply. Silo
+display name, groups, and the Prairie role that the admin groups imply. Prairie
 decides what to do with them.
 
 ## How sign-in works
 
 1. Connect to the first reachable directory URL (`ldaps://`, or `ldap://`
    with optional StartTLS). Certificate checks cannot be turned off; add a
-   private CA as PEM instead. Silo allows a sign-in about 10 seconds, so with
+   private CA as PEM instead. Prairie allows a sign-in about 10 seconds, so with
    several URLs each attempt gets a share of the time left.
 2. Bind as the service account (or stay anonymous when none is set).
 3. Search the user base DN with the user filter. `{username}` is escaped per
@@ -50,8 +50,8 @@ Refusals come back as typed denials, not errors:
 account, without the person's password. It answers `ACTIVE` (with current
 groups and role), `NOT_FOUND`, `DISABLED`, `NOT_PERMITTED` (no longer in an
 allowed group, or no longer matched by the user filter), or `UNAVAILABLE`.
-Silo re-checks every 12 hours by default (configurable in Silo); the first three
-answers end the person's Silo sessions at that re-check, not the moment the
+Prairie re-checks every 12 hours by default (configurable in Prairie); the first three
+answers end the person's Prairie sessions at that re-check, not the moment the
 directory changes.
 
 `DISABLED` covers the directory flags in the table above that don't need the
@@ -62,7 +62,7 @@ Temporary lockouts after failed passwords are not reported, because anyone
 could trigger them.
 
 An answer that ends sessions is given only when the service account can see
-the data behind it; otherwise the answer is `UNAVAILABLE` and Silo retries, so
+the data behind it; otherwise the answer is `UNAVAILABLE` and Prairie retries, so
 a revoked read permission doesn't end everyone's sessions:
 
 - Before `NOT_FOUND` or "no longer matched by the user filter", the service
@@ -81,7 +81,7 @@ The plugin stores no refresh state.
 
 ## Settings
 
-Settings are `global_config_schema` entries rendered by Silo's admin form:
+Settings are `global_config_schema` entries rendered by Prairie's admin form:
 
 | Entry | Fields |
 |---|---|
@@ -119,24 +119,24 @@ Directory notes:
   password. Kanidm refuses an expired account's bind as a wrong password;
   re-checks read `account_expire`.
 - **GLAuth** has no server-assigned ID. If a deleted user's `uidNumber` goes
-  to someone new, that person signs in to the old Silo account.
+  to someone new, that person signs in to the old Prairie account.
 
-Allowed and admin groups take one group per line, as a name (`silo-users`) or
+Allowed and admin groups take one group per line, as a name (`prairie-users`) or
 a full DN. A name matches the group's name attribute or the first RDN of its
-DN, in any container; for Kanidm, `silo-users` also matches
-`spn=silo-users@idm.example.com,...`. Admin groups must be full DNs except
+DN, in any container; for Kanidm, `prairie-users` also matches
+`spn=prairie-users@idm.example.com,...`. Admin groups must be full DNs except
 with the lldap, authentik, FreeIPA, Kanidm, and GLAuth presets, whose group
 names are unique across the directory; elsewhere anyone who can create a group
 could otherwise make themselves an admin. For the same reason, prefer full DNs
 for allowed groups on Active Directory and OpenLDAP. Names and DNs compare
 ASCII letters case-insensitively and every other character exactly, so
-look-alikes such as `ſilo-admins` don't match. Members of an admin group
+look-alikes such as `prairie-adminſ` don't match. Members of an admin group
 always pass the allowed-groups gate. With no admin groups the plugin leaves
-roles to Silo.
+roles to Prairie.
 
 `objectGUID` values become the canonical GUID string, such as
 `3f2504e0-4f89-11d3-9a0c-0305e82c3301`. Changing the unique ID attribute after
-people have signed in disconnects their Silo accounts.
+people have signed in disconnects their Prairie accounts.
 
 The login icon is compiled into the binary and served from the public
 `GET /assets/*` route, because catalog installs ship only the binary.
@@ -150,7 +150,7 @@ settings are stored and reported by the connection test and at sign-in.
 
 ## Dependency model
 
-This repository consumes `github.com/Silo-Server/silo-plugin-sdk` as a normal
+This repository consumes `github.com/prairie-server/prairie-plugin-sdk` as a normal
 Go module dependency. CI and release builds run with `GOWORK=off` and expect
 the SDK version in `go.mod` to resolve from a published semver tag.
 
@@ -158,12 +158,12 @@ the SDK version in `go.mod` to resolve from a published semver tag.
 
 If the SDK version in `go.mod` is not tagged yet, a plain `go build` can't
 resolve it. Until the tag exists, build against a local SDK checkout through a
-`go.work` file, which `.gitignore` already excludes (replace `v0.22.0` with the
+`go.work` file, which `.gitignore` already excludes (the example uses the
 version `go.mod` requires):
 
 ```sh
-go work init . ../silo-plugin-sdk
-go work edit -replace github.com/Silo-Server/silo-plugin-sdk@v0.22.0=../silo-plugin-sdk
+go work init . ../prairie-plugin-sdk
+go work edit -replace github.com/prairie-server/prairie-plugin-sdk@v0.12.1-0.20261012164003-eb8175742938=../prairie-plugin-sdk
 ```
 
 The `replace` line is needed because Go still looks up that version's
@@ -179,7 +179,7 @@ rm go.work go.work.sum
 GOWORK=off go mod tidy
 ```
 
-Then commit the new `silo-plugin-sdk` lines in `go.sum`.
+Then commit the new `prairie-plugin-sdk` lines in `go.sum`.
 
 Common tasks:
 
@@ -209,7 +209,7 @@ SSO_LAB_ENV=path/to/lab.env SSO_LAB_CA=path/to/ca.pem make test-lab
 `SSO_LAB_ENV` is a `KEY=value` file with the lab host and credentials; see
 `ldapauth/lab_test.go` for the keys it reads.
 
-For a local Silo, install the plugin by uploading the binary; the installer
+For a local Prairie, install the plugin by uploading the binary; the installer
 reads `<binary> manifest`.
 
 ## Contributing
@@ -220,5 +220,5 @@ should start as an issue.
 
 ## License
 
-`silo-plugin-auth-ldap` is licensed under `AGPL-3.0-or-later`. See
+`prairie-plugin-auth-ldap` is licensed under `AGPL-3.0-or-later`. See
 [LICENSE](LICENSE).

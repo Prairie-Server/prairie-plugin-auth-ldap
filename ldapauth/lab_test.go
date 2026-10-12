@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // Live tests against real directories. Both variants run the same checks on
-// four people with the same groups in every directory: alice (silo-users),
-// bob (silo-users, silo-admins), carol (no group), and dave (silo-users).
+// four people with the same groups in every directory: alice (prairie-users),
+// bob (prairie-users, prairie-admins), carol (no group), and dave (prairie-users).
 //
 // TestContainerDirectories runs against lldap and OpenLDAP containers that
 // scripts/directory-containers.sh starts and seeds; CI runs it on every
@@ -36,7 +36,7 @@ type labDirectory struct {
 	// missingStatus is the CheckAccount answer for an unknown ID:
 	// NOT_FOUND unless the user filter cannot become a presence test.
 	missingStatus pluginv1.CheckAccountStatus
-	// extraGroups lists groups a person must have besides silo-users.
+	// extraGroups lists groups a person must have besides prairie-users.
 	extraGroups map[string][]string
 }
 
@@ -91,21 +91,21 @@ func readEnvFile(t *testing.T, path string) map[string]string {
 func labDirectories(env map[string]string, ca string) []labDirectory {
 	host := env["LAB_HOST"]
 	kanidmBase := "dc=" + strings.ReplaceAll(host, ".", ",dc=")
-	gates := map[string]any{"allowed_groups": "silo-users", "admin_groups": "silo-admins"}
-	openLDAPGates := map[string]any{"allowed_groups": "silo-users", "admin_groups": "cn=silo-admins,ou=groups,dc=silo,dc=test"}
+	gates := map[string]any{"allowed_groups": "prairie-users", "admin_groups": "prairie-admins"}
+	openLDAPGates := map[string]any{"allowed_groups": "prairie-users", "admin_groups": "cn=prairie-admins,ou=groups,dc=prairie,dc=test"}
 	return []labDirectory{
 		{
 			name:      "lldap LDAPS",
-			directory: map[string]any{"preset": "lldap", "urls": "ldaps://" + host + ":9711", "ca_pem": ca, "bind_dn": "uid=ssolab-bind,ou=people,dc=silo,dc=test", "bind_password": env["LLDAP_BIND_PASSWORD"]},
-			users:     map[string]any{"base_dn": "ou=people,dc=silo,dc=test"},
+			directory: map[string]any{"preset": "lldap", "urls": "ldaps://" + host + ":9711", "ca_pem": ca, "bind_dn": "uid=ssolab-bind,ou=people,dc=prairie,dc=test", "bind_password": env["LLDAP_BIND_PASSWORD"]},
+			users:     map[string]any{"base_dn": "ou=people,dc=prairie,dc=test"},
 			groups:    gates,
 		},
 		{
 			name:      "lldap plain LDAP",
-			directory: map[string]any{"preset": "lldap", "urls": "ldap://" + host + ":9710", "bind_dn": "uid=ssolab-bind,ou=people,dc=silo,dc=test", "bind_password": env["LLDAP_BIND_PASSWORD"]},
-			users:     map[string]any{"base_dn": "ou=people,dc=silo,dc=test"},
+			directory: map[string]any{"preset": "lldap", "urls": "ldap://" + host + ":9710", "bind_dn": "uid=ssolab-bind,ou=people,dc=prairie,dc=test", "bind_password": env["LLDAP_BIND_PASSWORD"]},
+			users:     map[string]any{"base_dn": "ou=people,dc=prairie,dc=test"},
 			// Groups by DN rather than name.
-			groups: map[string]any{"allowed_groups": "cn=silo-users,ou=groups,dc=silo,dc=test", "admin_groups": "cn=silo-admins,ou=groups,dc=silo,dc=test"},
+			groups: map[string]any{"allowed_groups": "cn=prairie-users,ou=groups,dc=prairie,dc=test", "admin_groups": "cn=prairie-admins,ou=groups,dc=prairie,dc=test"},
 		},
 		{
 			name:      "authentik LDAP outpost",
@@ -121,20 +121,20 @@ func labDirectories(env map[string]string, ca string) []labDirectory {
 		},
 		{
 			name:      "OpenLDAP StartTLS with group search",
-			directory: map[string]any{"preset": "openldap", "urls": "ldap://" + host + ":9715", "start_tls": true, "ca_pem": ca, "bind_dn": "cn=readonly,dc=silo,dc=test", "bind_password": env["OPENLDAP_READONLY_PASSWORD"]},
-			users:     map[string]any{"base_dn": "ou=people,dc=silo,dc=test"},
-			groups:    merge(openLDAPGates, map[string]any{"base_dn": "ou=groups,dc=silo,dc=test"}),
+			directory: map[string]any{"preset": "openldap", "urls": "ldap://" + host + ":9715", "start_tls": true, "ca_pem": ca, "bind_dn": "cn=readonly,dc=prairie,dc=test", "bind_password": env["OPENLDAP_READONLY_PASSWORD"]},
+			users:     map[string]any{"base_dn": "ou=people,dc=prairie,dc=test"},
+			groups:    merge(openLDAPGates, map[string]any{"base_dn": "ou=groups,dc=prairie,dc=test"}),
 		},
 		{
 			name:      "OpenLDAP LDAPS with memberOf",
-			directory: map[string]any{"preset": "openldap", "urls": "ldaps://" + host + ":9716", "ca_pem": ca, "bind_dn": "cn=readonly,dc=silo,dc=test", "bind_password": env["OPENLDAP_READONLY_PASSWORD"]},
-			users:     map[string]any{"base_dn": "ou=people,dc=silo,dc=test"},
+			directory: map[string]any{"preset": "openldap", "urls": "ldaps://" + host + ":9716", "ca_pem": ca, "bind_dn": "cn=readonly,dc=prairie,dc=test", "bind_password": env["OPENLDAP_READONLY_PASSWORD"]},
+			users:     map[string]any{"base_dn": "ou=people,dc=prairie,dc=test"},
 			groups:    merge(openLDAPGates, map[string]any{"source": "memberof"}),
 		},
 		{
 			name:          "OpenLDAP LDAPS with an extensible-match user filter",
-			directory:     map[string]any{"preset": "openldap", "urls": "ldaps://" + host + ":9716", "ca_pem": ca, "bind_dn": "cn=readonly,dc=silo,dc=test", "bind_password": env["OPENLDAP_READONLY_PASSWORD"]},
-			users:         map[string]any{"base_dn": "ou=people,dc=silo,dc=test", "filter": extensibleUserFilter},
+			directory:     map[string]any{"preset": "openldap", "urls": "ldaps://" + host + ":9716", "ca_pem": ca, "bind_dn": "cn=readonly,dc=prairie,dc=test", "bind_password": env["OPENLDAP_READONLY_PASSWORD"]},
+			users:         map[string]any{"base_dn": "ou=people,dc=prairie,dc=test", "filter": extensibleUserFilter},
 			groups:        merge(openLDAPGates, map[string]any{"source": "memberof"}),
 			missingStatus: pluginv1.CheckAccountStatus_CHECK_ACCOUNT_STATUS_UNAVAILABLE,
 		},
@@ -155,26 +155,26 @@ func containerDirectories(env map[string]string, ca string) []labDirectory {
 		return map[string]any{"preset": "openldap", "urls": url, "start_tls": startTLS, "ca_pem": ca, "bind_dn": env["LDAPTEST_OPENLDAP_BIND_DN"], "bind_password": env["LDAPTEST_OPENLDAP_BIND_PASSWORD"]}
 	}
 	lldapGroups, openLDAPGroups := env["LDAPTEST_LLDAP_GROUP_BASE_DN"], env["LDAPTEST_OPENLDAP_GROUP_BASE_DN"]
-	openLDAPGates := map[string]any{"allowed_groups": "silo-users", "admin_groups": "cn=silo-admins," + openLDAPGroups}
+	openLDAPGates := map[string]any{"allowed_groups": "prairie-users", "admin_groups": "cn=prairie-admins," + openLDAPGroups}
 	return []labDirectory{
 		{
 			name:      "lldap LDAPS",
 			directory: lldap(env["LDAPTEST_LLDAP_LDAPS_URL"]),
 			users:     map[string]any{"base_dn": env["LDAPTEST_LLDAP_USER_BASE_DN"]},
-			groups:    map[string]any{"allowed_groups": "silo-users", "admin_groups": "silo-admins"},
+			groups:    map[string]any{"allowed_groups": "prairie-users", "admin_groups": "prairie-admins"},
 		},
 		{
 			name:      "lldap plain LDAP with group DNs",
 			directory: lldap(env["LDAPTEST_LLDAP_URL"]),
 			users:     map[string]any{"base_dn": env["LDAPTEST_LLDAP_USER_BASE_DN"]},
-			groups:    map[string]any{"allowed_groups": "cn=silo-users," + lldapGroups, "admin_groups": "cn=silo-admins," + lldapGroups},
+			groups:    map[string]any{"allowed_groups": "cn=prairie-users," + lldapGroups, "admin_groups": "cn=prairie-admins," + lldapGroups},
 		},
 		{
 			name:        "OpenLDAP StartTLS with group search",
 			directory:   openLDAP(env["LDAPTEST_OPENLDAP_URL"], true),
 			users:       map[string]any{"base_dn": env["LDAPTEST_OPENLDAP_USER_BASE_DN"]},
 			groups:      merge(openLDAPGates, map[string]any{"base_dn": openLDAPGroups}),
-			extraGroups: map[string][]string{"alice": {"silo-viewers"}, "dave": {"silo-posix"}},
+			extraGroups: map[string][]string{"alice": {"prairie-viewers"}, "dave": {"prairie-posix"}},
 		},
 		{
 			name:      "OpenLDAP LDAPS with memberOf",
@@ -286,7 +286,7 @@ func checkDirectory(t *testing.T, dir labDirectory, password func(user string) s
 		if resp.GetDenial() != pluginv1.AuthDenial_AUTH_DENIAL_UNSPECIFIED {
 			t.Fatalf("%s denied: %v %s", tc.user, resp.GetDenial(), resp.GetDenialDetail())
 		}
-		wantGroups := append([]string{"silo-users"}, dir.extraGroups[tc.user]...)
+		wantGroups := append([]string{"prairie-users"}, dir.extraGroups[tc.user]...)
 		if resp.GetExternalSubject() == "" || resp.GetManagedRole() != tc.role ||
 			resp.GetUsername() != tc.user || resp.GetEmail() != tc.user+"@example.com" ||
 			!containsAll(resp.GetGroups(), wantGroups) {

@@ -2,10 +2,10 @@
 # Start lldap and OpenLDAP in Docker for TestContainerDirectories, seeded with
 # the same four people as the live lab:
 #
-#   alice  silo-users (plus silo-viewers, a groupOfNames group)
-#   bob    silo-users, silo-admins
+#   alice  prairie-users (plus prairie-viewers, a groupOfNames group)
+#   bob    prairie-users, prairie-admins
 #   carol  no group
-#   dave   silo-users (plus silo-posix, a posixGroup group)
+#   dave   prairie-users (plus prairie-posix, a posixGroup group)
 #
 # Usage:
 #   scripts/directory-containers.sh up     start, seed, and write the env file
@@ -35,7 +35,7 @@ LLDAP_IMAGE=lldap/lldap:2026-09-22-alpine
 OPENLDAP_IMAGE=osixia/openldap:1.5.0
 LLDAP="${PREFIX}lldap"
 OPENLDAP="${PREFIX}openldap"
-BASE=dc=silo,dc=test
+BASE=dc=prairie,dc=test
 
 down() {
   docker rm -f "$LLDAP" "$OPENLDAP" >/dev/null 2>&1 || true
@@ -101,15 +101,15 @@ DHPARAM
   # lldap: people and groups come from the image's bootstrap script.
   local name first groups
   : > "$DIR/lldap/user-configs/users.json"
-  for spec in "alice:Alice:silo-users" "bob:Bob:silo-users,silo-admins" "carol:Carol:" "dave:Dave:silo-users"; do
+  for spec in "alice:Alice:prairie-users" "bob:Bob:prairie-users,prairie-admins" "carol:Carol:" "dave:Dave:prairie-users"; do
     IFS=: read -r name first groups <<< "$spec"
     printf '{"id":"%s","email":"%s@example.com","password":"%s","displayName":"%s Tester","firstName":"%s","lastName":"Tester","groups":[%s]}\n' \
       "$name" "$name" "${!name}" "$first" "$first" \
       "$(if [ -n "$groups" ]; then echo "\"${groups//,/\",\"}\""; fi)" >> "$DIR/lldap/user-configs/users.json"
   done
-  printf '{"id":"silo-bind","email":"silo-bind@example.com","password":"%s","displayName":"Silo bind","groups":["lldap_strict_readonly"]}\n' \
+  printf '{"id":"prairie-bind","email":"prairie-bind@example.com","password":"%s","displayName":"Prairie bind","groups":["lldap_strict_readonly"]}\n' \
     "$lldap_bind" >> "$DIR/lldap/user-configs/users.json"
-  printf '{"name":"silo-users"}\n{"name":"silo-admins"}\n' > "$DIR/lldap/group-configs/groups.json"
+  printf '{"name":"prairie-users"}\n{"name":"prairie-admins"}\n' > "$DIR/lldap/group-configs/groups.json"
   chmod 644 "$DIR/lldap"/*/*.json
 
   # Files go in with docker cp rather than bind mounts, so the script also
@@ -131,7 +131,7 @@ DHPARAM
 
   docker create --name "$OPENLDAP" \
     -p "$HOST:$((PORT + 2)):389" -p "$HOST:$((PORT + 3)):636" \
-    -e LDAP_ORGANISATION="Silo test" -e LDAP_DOMAIN=silo.test \
+    -e LDAP_ORGANISATION="Prairie test" -e LDAP_DOMAIN=prairie.test \
     -e LDAP_ADMIN_PASSWORD="$ol_admin" -e LDAP_CONFIG_PASSWORD="$ol_admin" \
     -e LDAP_READONLY_USER=true -e LDAP_READONLY_USER_USERNAME=readonly \
     -e LDAP_READONLY_USER_PASSWORD="$ol_readonly" \
@@ -145,8 +145,8 @@ DHPARAM
   retry 90 "lldap bootstrap" docker exec "$LLDAP" /app/bootstrap.sh
   retry 90 "OpenLDAP" docker exec "$OPENLDAP" ldapsearch -x -H ldap://localhost -D "cn=admin,$BASE" -w "$ol_admin" -b "$BASE" -s base
 
-  # OpenLDAP: the memberOf overlay tracks groupOfUniqueNames. silo-viewers
-  # (groupOfNames) and silo-posix (posixGroup) are found only by a group
+  # OpenLDAP: the memberOf overlay tracks groupOfUniqueNames. prairie-viewers
+  # (groupOfNames) and prairie-posix (posixGroup) are found only by a group
   # search, which covers the rest of the OpenLDAP preset's group filter.
   docker exec -i "$OPENLDAP" ldapadd -x -H ldap://localhost -D "cn=admin,$BASE" -w "$ol_admin" >/dev/null <<EOF
 dn: ou=people,$BASE
@@ -163,26 +163,26 @@ $(for spec in alice:Alice bob:Bob carol:Carol dave:Dave; do
     "$name" "$BASE" "$name" "$first" "$first" "$name"
 done)
 
-dn: cn=silo-users,ou=groups,$BASE
+dn: cn=prairie-users,ou=groups,$BASE
 objectClass: groupOfUniqueNames
-cn: silo-users
+cn: prairie-users
 uniqueMember: uid=alice,ou=people,$BASE
 uniqueMember: uid=bob,ou=people,$BASE
 uniqueMember: uid=dave,ou=people,$BASE
 
-dn: cn=silo-admins,ou=groups,$BASE
+dn: cn=prairie-admins,ou=groups,$BASE
 objectClass: groupOfUniqueNames
-cn: silo-admins
+cn: prairie-admins
 uniqueMember: uid=bob,ou=people,$BASE
 
-dn: cn=silo-viewers,ou=groups,$BASE
+dn: cn=prairie-viewers,ou=groups,$BASE
 objectClass: groupOfNames
-cn: silo-viewers
+cn: prairie-viewers
 member: uid=alice,ou=people,$BASE
 
-dn: cn=silo-posix,ou=groups,$BASE
+dn: cn=prairie-posix,ou=groups,$BASE
 objectClass: posixGroup
-cn: silo-posix
+cn: prairie-posix
 gidNumber: 5000
 memberUid: dave
 EOF
@@ -201,7 +201,7 @@ LDAPTEST_CAROL_PASSWORD=$carol
 LDAPTEST_DAVE_PASSWORD=$dave
 LDAPTEST_LLDAP_URL=ldap://$HOST:$PORT
 LDAPTEST_LLDAP_LDAPS_URL=ldaps://$HOST:$((PORT + 1))
-LDAPTEST_LLDAP_BIND_DN=uid=silo-bind,ou=people,$BASE
+LDAPTEST_LLDAP_BIND_DN=uid=prairie-bind,ou=people,$BASE
 LDAPTEST_LLDAP_BIND_PASSWORD=$lldap_bind
 LDAPTEST_LLDAP_USER_BASE_DN=ou=people,$BASE
 LDAPTEST_LLDAP_GROUP_BASE_DN=ou=groups,$BASE

@@ -150,7 +150,7 @@ var presets = map[string]preset{
 		DisplayNameAttribute: "cn",
 		// GLAuth has no server-assigned ID. uidNumber is assigned by the
 		// operator and must never be reused after a user is deleted, or the
-		// next holder inherits the old Silo account.
+		// next holder inherits the old Prairie account.
 		UniqueIDAttribute:   "uidNumber",
 		GroupSource:         groupSourceMemberOf,
 		MembershipAttribute: "memberOf",

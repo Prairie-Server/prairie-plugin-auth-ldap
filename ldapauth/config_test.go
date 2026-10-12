@@ -9,8 +9,8 @@ import (
 	"testing/fstest"
 	"time"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	"github.com/go-ldap/ldap/v3"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -28,7 +28,7 @@ func TestParseConfigAppliesPresetDefaults(t *testing.T) {
 		entry(t, "display_name", map[string]any{"value": "Corp"}),
 		entry(t, configKeyDirectory, map[string]any{"preset": "active_directory", "urls": "ldaps://dc1.corp.example\nldaps://dc2.corp.example:3269", "bind_dn": "svc@corp.example", "bind_password": "pw", "connect_timeout_seconds": 3.0}),
 		entry(t, configKeyUsers, map[string]any{"base_dn": "DC=corp,DC=example", "email_attribute": "userPrincipalName"}),
-		entry(t, configKeyGroups, map[string]any{"allowed_groups": "Silo Users\nCN=Silo Admins,OU=Groups,DC=corp,DC=example", "admin_groups": ""}),
+		entry(t, configKeyGroups, map[string]any{"allowed_groups": "Prairie Users\nCN=Prairie Admins,OU=Groups,DC=corp,DC=example", "admin_groups": ""}),
 	})
 	if !s.Ready() {
 		t.Fatalf("problems: %s", s.ProblemSummary())
@@ -42,7 +42,7 @@ func TestParseConfigAppliesPresetDefaults(t *testing.T) {
 	if len(s.URLs) != 2 || s.Issuer() != "ldaps://dc1.corp.example" || s.ConnectTimeout.Seconds() != 3 || s.RequestTimeout != defaultRequestTimeout {
 		t.Fatalf("connection settings: %+v", s)
 	}
-	if len(s.AllowedGroups) != 2 || s.AllowedGroups[0].name != "Silo Users" || s.AllowedGroups[1].dn == nil {
+	if len(s.AllowedGroups) != 2 || s.AllowedGroups[0].name != "Prairie Users" || s.AllowedGroups[1].dn == nil {
 		t.Fatalf("allowed groups: %+v", s.AllowedGroups)
 	}
 }
@@ -72,8 +72,8 @@ func TestParseConfigReportsProblems(t *testing.T) {
 		{"lldap StartTLS", map[string]any{"preset": "lldap", "urls": "ldap://x", "start_tls": true}, map[string]any{"base_dn": "dc=x"}, nil, "does not support StartTLS"},
 		{"authentik StartTLS", map[string]any{"preset": "authentik", "urls": "ldap://x", "start_tls": true}, map[string]any{"base_dn": "dc=x"}, nil, "does not support StartTLS"},
 		{"AD admin group by name", map[string]any{"preset": "active_directory", "urls": "ldaps://x"}, map[string]any{"base_dn": "dc=x"}, map[string]any{"admin_groups": "Domain Admins"}, "list admin groups as full DNs"},
-		{"generic admin group by name", map[string]any{"urls": "ldaps://x"}, map[string]any{"base_dn": "dc=x"}, map[string]any{"admin_groups": "silo-admins"}, "list admin groups as full DNs"},
-		{"openldap admin group by name", map[string]any{"preset": "openldap", "urls": "ldaps://x"}, map[string]any{"base_dn": "dc=x"}, map[string]any{"admin_groups": "silo-admins"}, "list admin groups as full DNs"},
+		{"generic admin group by name", map[string]any{"urls": "ldaps://x"}, map[string]any{"base_dn": "dc=x"}, map[string]any{"admin_groups": "prairie-admins"}, "list admin groups as full DNs"},
+		{"openldap admin group by name", map[string]any{"preset": "openldap", "urls": "ldaps://x"}, map[string]any{"base_dn": "dc=x"}, map[string]any{"admin_groups": "prairie-admins"}, "list admin groups as full DNs"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var entries []*pluginv1.ConfigEntry
@@ -99,7 +99,7 @@ func TestParseConfigAllowsAdminGroupNamesWhereNamesAreUnique(t *testing.T) {
 		s := ParseConfig([]*pluginv1.ConfigEntry{
 			entry(t, configKeyDirectory, map[string]any{"preset": preset, "urls": "ldaps://x"}),
 			entry(t, configKeyUsers, map[string]any{"base_dn": "dc=x"}),
-			entry(t, configKeyGroups, map[string]any{"allowed_groups": "silo-users", "admin_groups": "silo-admins"}),
+			entry(t, configKeyGroups, map[string]any{"allowed_groups": "prairie-users", "admin_groups": "prairie-admins"}),
 		})
 		if !s.Ready() {
 			t.Errorf("%s: %s", preset, s.ProblemSummary())
@@ -109,7 +109,7 @@ func TestParseConfigAllowsAdminGroupNamesWhereNamesAreUnique(t *testing.T) {
 	s := ParseConfig([]*pluginv1.ConfigEntry{
 		entry(t, configKeyDirectory, map[string]any{"preset": "active_directory", "urls": "ldaps://x"}),
 		entry(t, configKeyUsers, map[string]any{"base_dn": "dc=x"}),
-		entry(t, configKeyGroups, map[string]any{"allowed_groups": "Silo Users", "admin_groups": "CN=Silo Admins,OU=Groups,DC=x"}),
+		entry(t, configKeyGroups, map[string]any{"allowed_groups": "Prairie Users", "admin_groups": "CN=Prairie Admins,OU=Groups,DC=x"}),
 	})
 	if !s.Ready() {
 		t.Fatal(s.ProblemSummary())
@@ -292,15 +292,15 @@ func TestConfigureNeverFails(t *testing.T) {
 
 func TestGroupNames(t *testing.T) {
 	groups := []directoryGroup{
-		groupFromDN("spn=silo-users@idm.example.com,dc=idm,dc=example,dc=com"),
-		groupFromDN("cn=Silo Admins,ou=groups,dc=example"),
-		groupFromDN("cn=silo admins,ou=other,dc=example"),
+		groupFromDN("spn=prairie-users@idm.example.com,dc=idm,dc=example,dc=com"),
+		groupFromDN("cn=Prairie Admins,ou=groups,dc=example"),
+		groupFromDN("cn=prairie admins,ou=other,dc=example"),
 		groupFromDN("not a dn"),
 	}
-	if got := strings.Join(groupNames(groups), "|"); got != "Silo Admins|not a dn|silo-users" {
+	if got := strings.Join(groupNames(groups), "|"); got != "Prairie Admins|not a dn|prairie-users" {
 		t.Fatalf("names = %q", got)
 	}
-	refs, err := parseGroupRefs("silo-users@idm.example.com\nsilo-users\n")
+	refs, err := parseGroupRefs("prairie-users@idm.example.com\nprairie-users\n")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -309,23 +309,23 @@ func TestGroupNames(t *testing.T) {
 			t.Fatalf("kanidm group should match %q", ref)
 		}
 	}
-	dnRef, _ := parseGroupRefs("CN=silo admins, OU=groups, DC=example")
+	dnRef, _ := parseGroupRefs("CN=prairie admins, OU=groups, DC=example")
 	if !groups[1].matches(dnRef[0]) || groups[2].matches(dnRef[0]) {
 		t.Fatal("DN refs must match the whole DN, case-insensitively")
 	}
 }
 
 func TestGroupMatchingIgnoresUnicodeLookAlikes(t *testing.T) {
-	nameRef, _ := parseGroupRefs("silo-admins\nk-admins")
-	dnRef, _ := parseGroupRefs("cn=silo-admins,ou=groups,dc=example")
+	nameRef, _ := parseGroupRefs("prairie-admins\nk-admins")
+	dnRef, _ := parseGroupRefs("cn=prairie-admins,ou=groups,dc=example")
 	for _, tc := range []struct {
 		value       string
 		nameMatches bool
 	}{
-		{"cn=\u017filo-admins,ou=groups,dc=example", false}, // LATIN SMALL LETTER LONG S
-		{"cn=\u212a-admins,ou=groups,dc=example", false},    // KELVIN SIGN
-		{"cn=silo-admins,ou=team-x,dc=example", true},       // same name, other container
-		{"cn=silo-admins,ou=group\u017f,dc=example", true},  // look-alike in the DN
+		{"cn=prairie-admin\u017f,ou=groups,dc=example", false}, // LATIN SMALL LETTER LONG S
+		{"cn=\u212a-admins,ou=groups,dc=example", false},       // KELVIN SIGN
+		{"cn=prairie-admins,ou=team-x,dc=example", true},       // same name, other container
+		{"cn=prairie-admins,ou=group\u017f,dc=example", true},  // look-alike in the DN
 	} {
 		g := groupFromDN(tc.value)
 		if g.matches(dnRef[0]) {
@@ -335,7 +335,7 @@ func TestGroupMatchingIgnoresUnicodeLookAlikes(t *testing.T) {
 			t.Errorf("%q matched an admin name: %v, want %v", tc.value, got, tc.nameMatches)
 		}
 	}
-	if !groupFromDN("CN=SILO-ADMINS,OU=Groups,DC=Example").matches(dnRef[0]) {
+	if !groupFromDN("CN=PRAIRIE-ADMINS,OU=Groups,DC=Example").matches(dnRef[0]) {
 		t.Fatal("ASCII case must still be ignored")
 	}
 	if !groupFromDN("cn=K-Admins,dc=example").matches(nameRef[1]) {
@@ -346,9 +346,9 @@ func TestGroupMatchingIgnoresUnicodeLookAlikes(t *testing.T) {
 func TestSearchTreatsServerSizeLimitAsFailure(t *testing.T) {
 	d := startFakeDirectory(t, fakeLDAPS)
 	seedDirectory(d)
-	d.add("cn=silo-extra,"+testGroups, "", map[string][]string{
+	d.add("cn=prairie-extra,"+testGroups, "", map[string][]string{
 		"objectClass": {"groupOfNames"},
-		"cn":          {"silo-extra"},
+		"cn":          {"prairie-extra"},
 		"member":      {"uid=bob," + testPeople},
 	})
 	p := newTestProvider(t, d, configOverrides{

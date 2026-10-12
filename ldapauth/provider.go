@@ -1,6 +1,6 @@
-// Package ldapauth implements Silo's LDAP auth provider: it checks a username
+// Package ldapauth implements Prairie's LDAP auth provider: it checks a username
 // and password against a directory and returns typed facts about the
-// account. It holds no Silo account logic; the host decides what to do with
+// account. It holds no Prairie account logic; the host decides what to do with
 // the facts.
 package ldapauth
 
@@ -14,9 +14,9 @@ import (
 	"time"
 	"unicode"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	"github.com/go-ldap/ldap/v3"
 	"github.com/hashicorp/go-hclog"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -141,7 +141,7 @@ func authenticate(ctx context.Context, s *Settings, rawUsername, password string
 // unique ID. It refuses a username that matches no entry or several, and,
 // unless the directory assigns the ID, an entry whose unique ID another entry
 // shares: CheckAccount could not tell the two apart later, and a reused ID
-// would hand one person's Silo account to another.
+// would hand one person's Prairie account to another.
 func (sess *session) findUser(username string) (*ldap.Entry, string, *denial) {
 	s := sess.settings
 	entry, d := sess.userByName(username)
@@ -289,7 +289,7 @@ const (
 )
 
 // checkAccount re-checks an account. NOT_FOUND, DISABLED, and NOT_PERMITTED
-// end the person's Silo sessions, so each is answered only when the service
+// end the person's Prairie sessions, so each is answered only when the service
 // account can see the data behind it; otherwise the answer is UNAVAILABLE and
 // the host retries.
 func checkAccount(ctx context.Context, s *Settings, subject string) (pluginv1.CheckAccountStatus, *pluginv1.AuthenticateResponse, string) {

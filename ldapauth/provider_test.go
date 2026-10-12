@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
 	"github.com/jimlambrt/gldap"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -20,8 +20,8 @@ const (
 	testGroups    = "ou=groups," + testBase
 	testService   = "cn=svc," + testBase
 	testSvcPass   = "svc-secret"
-	usersGroupDN  = "cn=silo-users," + testGroups
-	adminsGroupDN = "cn=silo-admins," + testGroups
+	usersGroupDN  = "cn=prairie-users," + testGroups
+	adminsGroupDN = "cn=prairie-admins," + testGroups
 )
 
 var testPasswords = map[string]string{
@@ -31,8 +31,8 @@ var testPasswords = map[string]string{
 	"dave":  "dave-pw",
 }
 
-// seedDirectory creates the lab's people: alice (silo-users), bob
-// (silo-users, silo-admins), carol (no group), dave (silo-users).
+// seedDirectory creates the lab's people: alice (prairie-users), bob
+// (prairie-users, prairie-admins), carol (no group), dave (prairie-users).
 func seedDirectory(d *fakeDirectory) {
 	d.add(testBase, "", map[string][]string{"objectClass": {"domain"}, "dc": {"example"}})
 	d.add(testPeople, "", map[string][]string{"objectClass": {"organizationalUnit"}, "ou": {"people"}})
@@ -55,12 +55,12 @@ func seedDirectory(d *fakeDirectory) {
 	person("dave", "Dave Davis", usersGroupDN)
 	d.add(usersGroupDN, "", map[string][]string{
 		"objectClass": {"groupOfNames"},
-		"cn":          {"silo-users"},
+		"cn":          {"prairie-users"},
 		"member":      {"uid=alice," + testPeople, "uid=bob," + testPeople, "uid=dave," + testPeople},
 	})
 	d.add(adminsGroupDN, "", map[string][]string{
 		"objectClass": {"groupOfNames"},
-		"cn":          {"silo-admins"},
+		"cn":          {"prairie-admins"},
 		"member":      {"uid=bob," + testPeople},
 	})
 }
@@ -81,7 +81,7 @@ func testConfig(t *testing.T, d *fakeDirectory, overrides configOverrides) []*pl
 		},
 		configKeyUsers: {"base_dn": testPeople},
 		configKeyGroups: {
-			"allowed_groups": "silo-users",
+			"allowed_groups": "prairie-users",
 			"admin_groups":   adminsGroupDN,
 		},
 	}
@@ -163,7 +163,7 @@ func TestAuthenticateReturnsFacts(t *testing.T) {
 		if alice.GetIssuer() != d.url() {
 			t.Fatalf("issuer = %q, want %q", alice.GetIssuer(), d.url())
 		}
-		if !slices.Equal(alice.GetGroups(), []string{"silo-users"}) {
+		if !slices.Equal(alice.GetGroups(), []string{"prairie-users"}) {
 			t.Fatalf("alice groups = %v", alice.GetGroups())
 		}
 		if alice.GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_USER {
@@ -174,7 +174,7 @@ func TestAuthenticateReturnsFacts(t *testing.T) {
 		if bob.GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_ADMIN {
 			t.Fatalf("bob role = %v (%s)", bob.GetManagedRole(), bob.GetDenialDetail())
 		}
-		if !slices.Equal(bob.GetGroups(), []string{"silo-admins", "silo-users"}) {
+		if !slices.Equal(bob.GetGroups(), []string{"prairie-admins", "prairie-users"}) {
 			t.Fatalf("bob groups = %v", bob.GetGroups())
 		}
 
@@ -258,11 +258,11 @@ func TestAuthenticateGroupSearch(t *testing.T) {
 		t.Fatalf("openldap preset not applied: %+v", s)
 	}
 	bob := signIn(t, p, "bob", testPasswords["bob"])
-	if bob.GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_ADMIN || !slices.Equal(bob.GetGroups(), []string{"silo-admins", "silo-users"}) {
+	if bob.GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_ADMIN || !slices.Equal(bob.GetGroups(), []string{"prairie-admins", "prairie-users"}) {
 		t.Fatalf("bob = role %v groups %v (%s)", bob.GetManagedRole(), bob.GetGroups(), bob.GetDenialDetail())
 	}
 	erin := signIn(t, p, "erin", "erin-pw")
-	if erin.GetExternalSubject() != "uuid-erin" || !slices.Equal(erin.GetGroups(), []string{"silo-users"}) {
+	if erin.GetExternalSubject() != "uuid-erin" || !slices.Equal(erin.GetGroups(), []string{"prairie-users"}) {
 		t.Fatalf("erin = %+v", erin)
 	}
 	wantDenial(t, signIn(t, p, "carol", testPasswords["carol"]), pluginv1.AuthDenial_AUTH_DENIAL_NOT_PERMITTED)
@@ -521,7 +521,7 @@ func TestTestConnection(t *testing.T) {
 	if !resp.GetOk() || !slices.Equal(ids, []string{"settings", "connect", "service_bind", "user_base", "user_filter", "group_base", "test_user"}) {
 		t.Fatalf("ok=%v steps=%v", resp.GetOk(), ids)
 	}
-	if last := resp.GetSteps()[len(ids)-1].GetMessage(); !strings.Contains(last, "role admin") || !strings.Contains(last, "silo-admins") {
+	if last := resp.GetSteps()[len(ids)-1].GetMessage(); !strings.Contains(last, "role admin") || !strings.Contains(last, "prairie-admins") {
 		t.Fatalf("test user message = %q", last)
 	}
 	if running.Settings() != before {
@@ -676,8 +676,8 @@ func TestAdminGroupsIgnoreLookAlikes(t *testing.T) {
 	seedDirectory(d)
 	d.setAttr("uid=carol,"+testPeople, "memberOf",
 		usersGroupDN,
-		"cn=silo-admins,ou=team-x,"+testBase,
-		"cn=ſilo-admins,"+testGroups,
+		"cn=prairie-admins,ou=team-x,"+testBase,
+		"cn=prairie-adminſ,"+testGroups,
 	)
 	p := newTestProvider(t, d, nil)
 	if carol := signIn(t, p, "carol", testPasswords["carol"]); carol.GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_USER {
@@ -685,8 +685,8 @@ func TestAdminGroupsIgnoreLookAlikes(t *testing.T) {
 	}
 	// Presets with directory-wide unique names accept names, and still
 	// ignore look-alikes.
-	d.setAttr("uid=carol,"+testPeople, "memberOf", usersGroupDN, "cn=ſilo-admins,"+testGroups)
-	lldap := newTestProvider(t, d, configOverrides{configKeyDirectory: {"preset": "lldap"}, configKeyGroups: {"admin_groups": "silo-admins"}})
+	d.setAttr("uid=carol,"+testPeople, "memberOf", usersGroupDN, "cn=prairie-adminſ,"+testGroups)
+	lldap := newTestProvider(t, d, configOverrides{configKeyDirectory: {"preset": "lldap"}, configKeyGroups: {"admin_groups": "prairie-admins"}})
 	if carol := signIn(t, lldap, "carol", testPasswords["carol"]); carol.GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_USER {
 		t.Fatalf("carol role with lldap = %v (%s)", carol.GetManagedRole(), carol.GetDenialDetail())
 	}
@@ -712,15 +712,15 @@ func TestGLAuthPreset(t *testing.T) {
 			"accountStatus": {"active"},
 		})
 	}
-	users := "ou=silo-users,ou=groups," + base
-	admins := "ou=silo-admins,ou=groups," + base
+	users := "ou=prairie-users,ou=groups," + base
+	admins := "ou=prairie-admins,ou=groups," + base
 	user("alice", "5001", users)
 	user("bob", "5002", users, admins)
 	user("dave", "5004", users)
 	p := newTestProvider(t, d, configOverrides{
 		configKeyDirectory: {"preset": "glauth"},
 		configKeyUsers:     {"base_dn": base},
-		configKeyGroups:    {"allowed_groups": "silo-users", "admin_groups": "silo-admins"},
+		configKeyGroups:    {"allowed_groups": "prairie-users", "admin_groups": "prairie-admins"},
 	})
 	bob := signIn(t, p, "bob", testPasswords["bob"])
 	if bob.GetExternalSubject() != "5002" || bob.GetManagedRole() != pluginv1.AuthManagedRole_AUTH_MANAGED_ROLE_ADMIN {
@@ -732,7 +732,7 @@ func TestGLAuthPreset(t *testing.T) {
 	wantDenial(t, signIn(t, p, "dave", testPasswords["dave"]), pluginv1.AuthDenial_AUTH_DENIAL_ACCOUNT_DISABLED)
 	wantStatus(t, p, "5004", pluginv1.CheckAccountStatus_CHECK_ACCOUNT_STATUS_DISABLED)
 
-	// A reused uidNumber would hand alice's Silo account to carol.
+	// A reused uidNumber would hand alice's Prairie account to carol.
 	user("carol", "5001", users)
 	wantDenial(t, signIn(t, p, "alice", testPasswords["alice"]), pluginv1.AuthDenial_AUTH_DENIAL_PROVIDER_UNAVAILABLE)
 	wantDenial(t, signIn(t, p, "carol", testPasswords["carol"]), pluginv1.AuthDenial_AUTH_DENIAL_PROVIDER_UNAVAILABLE)
